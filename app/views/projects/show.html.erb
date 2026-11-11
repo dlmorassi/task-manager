@@ -1,0 +1,86 @@
+<main class="page-shell board-shell">
+  <section class="page-heading board-heading">
+    <div>
+      <p class="eyebrow"><%= link_to current_user.organization.name, projects_path %> / PROJECT</p>
+      <h1><%= @project.name %></h1>
+      <p class="muted"><%= @project.description.presence || "No project description" %></p>
+    </div>
+    <details class="new-task-menu">
+      <summary class="button">＋ New task</summary>
+      <div class="popover form-stack">
+        <h2>Create a task</h2>
+        <%= form_with model: [@project, @task] do |form| %>
+          <div class="field"><%= form.label :title %><%= form.text_field :title, required: true, autofocus: true %></div>
+          <div class="field"><%= form.label :description %><%= form.text_area :description, rows: 3 %></div>
+          <div class="form-grid">
+            <div class="field"><%= form.label :story_points %><%= form.number_field :story_points, min: 0.1, max: 999999.9, step: 0.1 %></div>
+            <div class="field"><%= form.label :due_date, "Due date" %><%= form.date_field :due_date %></div>
+          </div>
+          <div class="field"><%= form.label :status_id, "Status" %><%= form.collection_select :status_id, @project.statuses.active.order(:position), :id, :name, prompt: "Choose a status" %></div>
+          <% if @members.any? %><div class="field"><span class="field-label">Assign to</span><div class="checkbox-list"><%= form.collection_check_boxes :assigned_user_ids, @members, :id, :first_name do |box| %><label class="check-option"><%= box.check_box %><%= box.text %></label><% end %></div></div><% end %>
+          <%= form.submit "Add task", class: "button button-full" %>
+        <% end %>
+      </div>
+    </details>
+  </section>
+
+  <% active_statuses = @project.statuses.active.order(:position) %>
+  <% if active_statuses.any? %>
+    <section class="board" aria-label="Project board">
+      <% active_statuses.each_with_index do |status, index| %>
+        <section class="board-column">
+          <header class="column-heading">
+            <span class="status-dot status-<%= index % 4 %>"></span>
+            <h2><%= status.name %></h2>
+            <% if current_user.admin? %>
+              <div class="status-order-controls">
+                <% unless index.zero? %>
+                  <%= button_to "←", move_project_status_path(@project, status, direction: "left"), method: :patch, class: "status-order-button", title: "Move #{status.name} earlier", aria: { label: "Move #{status.name} earlier" } %>
+                <% end %>
+                <% unless index == active_statuses.size - 1 %>
+                  <%= button_to "→", move_project_status_path(@project, status, direction: "right"), method: :patch, class: "status-order-button", title: "Move #{status.name} later", aria: { label: "Move #{status.name} later" } %>
+                <% end %>
+              </div>
+            <% end %>
+            <span class="task-count"><%= status.tasks.size %></span>
+          </header>
+          <div class="task-list">
+            <% status.tasks.order(updated_at: :desc).each do |task| %>
+              <article class="task-card">
+                <%= link_to task.title, project_task_path(@project, task), class: "task-title" %>
+                <% if task.description.present? %><p><%= truncate(task.description, length: 110) %></p><% end %>
+                <footer class="task-card-meta">
+                  <% if task.story_points.present? %><span class="points"><%= task.story_points %> pts</span><% end %>
+                  <% if task.due_date %><span class="due-date <%= "overdue" if task.due_date.past? %>"><%= task.due_date.strftime("%b %-d") %></span><% end %>
+                  <span class="avatar-stack"><% task.assigned_users.each do |user| %><span class="avatar" title="<%= user.first_name %> <%= user.last_name %>"><%= user.first_name.first %><%= user.last_name.first %></span><% end %></span>
+                </footer>
+              </article>
+            <% end %>
+          </div>
+        </section>
+      <% end %>
+    </section>
+  <% else %>
+    <section class="empty-state compact-empty"><h2>No active statuses</h2><p>Add a status to start using this board.</p></section>
+  <% end %>
+
+  <% if current_user.admin? %>
+    <details class="status-manager">
+      <summary>Add a board status</summary>
+      <%= form_with model: [@project, Status.new], class: "inline-form" do |form| %>
+        <%= form.text_field :name, placeholder: "Status name", required: true, aria: { label: "Status name" } %>
+        <%= form.submit "Add status", class: "button button-small" %>
+      <% end %>
+    </details>
+    <details class="status-manager">
+      <summary>Manage project members</summary>
+      <div class="member-management">
+        <%= form_with url: project_memberships_path(@project), class: "inline-form" do |form| %>
+          <%= form.collection_select :user_id, current_user.organization.users.where.not(id: @project.user_ids).order(:first_name), :id, :first_name, prompt: "Choose a member" %>
+          <%= form.submit "Add", class: "button button-small" %>
+        <% end %>
+        <div class="member-list"><% @members.each do |member| %><span><%= member.first_name %> <%= member.last_name %><% unless member == current_user %><%= button_to "Remove #{member.first_name}", project_membership_path(@project, member), method: :delete, class: "text-button" %><% end %></span><% end %></div>
+      </div>
+    </details>
+  <% end %>
+</main>

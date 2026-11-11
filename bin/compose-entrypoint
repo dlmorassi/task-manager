@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+secret_file="/rails/storage/secret_key_base"
+mkdir -p /rails/storage
+if [ -z "${SECRET_KEY_BASE:-}" ]; then
+  if [ ! -s "$secret_file" ]; then
+    ./bin/rails secret > "$secret_file"
+    chmod 600 "$secret_file"
+  fi
+  SECRET_KEY_BASE="$(cat "$secret_file")"
+  export SECRET_KEY_BASE
+fi
+
+./bin/rails db:prepare
+./bin/rails runner script/seed_free_plan.rb
+exec ./bin/rails server -b 0.0.0.0 -p "${PORT:-3000}"

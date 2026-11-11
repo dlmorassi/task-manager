@@ -1,0 +1,17 @@
+<main class="page-shell page-shell-narrow">
+  <p class="eyebrow"><%= link_to current_user.organization.name, projects_path %> / TEAM</p>
+  <section class="page-heading"><div><h1>Organization members</h1><p class="muted">Manage who can access your workspace.</p></div></section>
+  <% if @user.errors.any? %><ul class="error-list"><% @user.errors.full_messages.each do |error| %><li><%= error %></li><% end %></ul><% end %>
+  <%= form_with model: @user, url: members_path, class: "form-stack form-panel" do |form| %>
+    <h2>Add a member</h2>
+    <div class="form-grid"><div class="field"><%= form.label :first_name %><%= form.text_field :first_name, required: true %></div><div class="field"><%= form.label :last_name %><%= form.text_field :last_name, required: true %></div></div>
+    <div class="field"><%= form.label :email %><%= form.email_field :email, required: true %></div>
+    <div class="field"><%= form.label :username, "Username (optional)" %><%= form.text_field :username %></div>
+    <div class="form-grid"><div class="field"><%= form.label :password %><%= form.password_field :password, required: true, minlength: 8 %></div><div class="field"><%= form.label :password_confirmation %><%= form.password_field :password_confirmation, required: true %></div></div>
+    <%= form.submit "Add member", class: "button" %>
+  <% end %>
+  <section class="member-directory">
+    <h2>Team <span class="task-count"><%= @members.size %></span></h2>
+    <% @members.each do |member| %><div class="member-row"><span class="avatar"><%= member.first_name.first %><%= member.last_name.first %></span><span class="member-name"><strong><%= member.first_name %> <%= member.last_name %></strong><span><%= member.email %></span></span><span class="role-label"><%= member.role %></span></div><% end %>
+  </section>
+</main>

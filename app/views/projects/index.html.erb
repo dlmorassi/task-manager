@@ -1,0 +1,30 @@
+<main class="page-shell">
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow"><%= current_user.organization.name %></p>
+      <h1>Projects</h1>
+      <p class="muted">Your team's work, in one place.</p>
+    </div>
+    <% if current_user.admin? %>
+      <div class="heading-actions"><%= link_to "Members", members_path, class: "text-button" %><%= link_to "＋ New project", new_project_path, class: "button" %></div>
+    <% end %>
+  </section>
+  <% if @projects.any? %>
+    <section class="project-list" aria-label="Projects">
+      <% @projects.each do |project| %>
+        <%= link_to project_path(project), class: "project-row" do %>
+          <span class="project-mark"><%= project.name.first(1).upcase %></span>
+          <span class="project-copy"><strong><%= project.name %></strong><span><%= project.description.presence || "No description" %></span></span>
+          <span class="project-meta"><%= pluralize(project.users.size, "member") %><span class="arrow">→</span></span>
+        <% end %>
+      <% end %>
+    </section>
+  <% else %>
+    <section class="empty-state">
+      <span class="empty-mark">+</span>
+      <h2>No projects yet</h2>
+      <p><%= current_user.admin? ? "Create a project to give your team a place to plan and track work." : "Ask your organization administrator to add you to a project." %></p>
+      <% if current_user.admin? %><%= link_to "Create your first project", new_project_path, class: "button" %><% end %>
+    </section>
+  <% end %>
+</main>

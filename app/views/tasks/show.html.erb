@@ -1,0 +1,43 @@
+<main class="page-shell task-page">
+  <p class="eyebrow"><%= link_to current_user.organization.name, projects_path %> / <%= link_to @project.name, project_path(@project) %> / TASK</p>
+  <div class="task-layout">
+    <section class="task-main">
+      <% if @task.errors.any? %><ul class="error-list"><% @task.errors.full_messages.each do |error| %><li><%= error %></li><% end %></ul><% end %>
+      <%= form_with model: [@project, @task], class: "form-stack" do |form| %>
+        <div class="field task-title-field"><%= form.label :title %><%= form.text_field :title, required: true %></div>
+        <div class="field"><%= form.label :description %><%= form.text_area :description, rows: 8 %></div>
+        <div class="form-grid">
+          <div class="field"><%= form.label :story_points %><%= form.number_field :story_points, min: 0.1, max: 999999.9, step: 0.1 %></div>
+          <div class="field"><%= form.label :due_date, "Due date" %><%= form.date_field :due_date %></div>
+          <div class="field"><%= form.label :status_id, "Status" %><%= form.collection_select :status_id, @project.statuses, :id, :name %></div>
+        </div>
+        <div class="field"><span class="field-label">Assignees</span><div class="checkbox-list"><%= form.collection_check_boxes :assigned_user_ids, @members, :id, :first_name do |box| %><label class="check-option"><%= box.check_box(checked: @task.assigned_user_ids.include?(box.value.to_i)) %><%= box.text %></label><% end %></div></div>
+        <div class="field"><%= form.label :attachments, "Add attachments" %><%= form.file_field :attachments, multiple: true %></div>
+        <% if @task.attachments.attached? %>
+          <div class="file-list"><span class="field-label">Attachments</span><% @task.attachments.each do |file| %><%= link_to file.filename, rails_blob_path(file, disposition: "attachment") %><% end %></div>
+        <% end %>
+        <p class="muted small-text">Last updated <%= l(@task.updated_at, format: :long) %></p>
+        <%= form.submit "Save task", class: "button" %>
+      <% end %>
+
+      <section class="comments-section">
+        <div class="section-heading"><h2>Comments</h2><span><%= @comments.size %></span></div>
+        <%= form_with model: [@project, @task, @comment], class: "comment-form" do |form| %>
+          <%= form.text_area :body, rows: 3, placeholder: "Write a comment...", required: true, aria: { label: "Comment" } %>
+          <%= form.submit "Comment", class: "button button-small" %>
+        <% end %>
+        <div class="comment-list">
+          <% @comments.each do |comment| %>
+            <article class="comment-item"><div class="comment-byline"><strong><%= comment.user.first_name %> <%= comment.user.last_name %></strong><time><%= l(comment.created_at, format: :short) %></time></div><p><%= comment.body %></p></article>
+          <% end %>
+        </div>
+      </section>
+    </section>
+    <aside class="task-aside">
+      <span class="eyebrow">PROJECT</span><strong><%= @project.name %></strong>
+      <span class="eyebrow aside-label">STATUS</span><span class="aside-value"><%= @task.status.name %></span>
+      <span class="eyebrow aside-label">ASSIGNEES</span><span class="aside-value"><%= @task.assigned_users.map(&:first_name).join(", ").presence || "Unassigned" %></span>
+      <span class="eyebrow aside-label">CREATED</span><span class="aside-value"><%= l(@task.created_at, format: :long) %></span>
+    </aside>
+  </div>
+</main>

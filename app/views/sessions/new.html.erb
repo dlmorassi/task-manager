@@ -1,0 +1,19 @@
+<main class="auth-shell">
+  <section class="auth-panel">
+    <p class="eyebrow">YOUR WORKSPACE</p>
+    <h1>Welcome back.</h1>
+    <p class="muted">Log in to continue to your organization.</p>
+    <%= form_with url: login_path, class: "form-stack" do |form| %>
+      <div class="field">
+        <%= form.label :identifier, "Email or username" %>
+        <%= form.text_field :identifier, required: true, autocomplete: "username", autofocus: true, placeholder: "you@example.com or username" %>
+      </div>
+      <div class="field">
+        <%= form.label :password %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password" %>
+      </div>
+      <%= form.submit "Log in", class: "button button-full" %>
+    <% end %>
+    <p class="form-footnote">New here? <%= link_to "Create an organization", sign_up_path %></p>
+  </section>
+</main>

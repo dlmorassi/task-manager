@@ -1,0 +1,11 @@
+<main class="page-shell page-shell-narrow">
+  <p class="eyebrow"><%= link_to "Projects", projects_path %> / NEW</p>
+  <h1>New project</h1>
+  <p class="muted">A project starts with a simple three-step board. You can add statuses later.</p>
+  <% if @project.errors.any? %><ul class="error-list"><% @project.errors.full_messages.each do |error| %><li><%= error %></li><% end %></ul><% end %>
+  <%= form_with model: @project, class: "form-stack form-panel" do |form| %>
+    <div class="field"><%= form.label :name %><%= form.text_field :name, required: true, autofocus: true %></div>
+    <div class="field"><%= form.label :description %><%= form.text_area :description, rows: 4 %></div>
+    <div class="form-actions"><%= form.submit "Create project", class: "button" %><%= link_to "Cancel", projects_path, class: "text-button" %></div>
+  <% end %>
+</main>
