@@ -31,8 +31,8 @@ RUN apt-get update -qq && \
 COPY vendor/* ./vendor/
 COPY Gemfile Gemfile.lock ./
 
-# Permite que o bundler atualize o lockfile para o Linux sem travar por incompatibilidade de plataforma
-RUN bundle config set force_ruby_platform true && \
+# Força o Bundler a aceitar a plataforma Linux e ignorar o lockfile restrito do Windows
+RUN bundle config set --local force_ruby_platform true && \
     bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
