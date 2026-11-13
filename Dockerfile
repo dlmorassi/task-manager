@@ -17,8 +17,7 @@ RUN apt-get update -qq && \
 # Set production environment variables
 ENV RAILS_ENV="production" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development" \
-    LD_PRELOAD="/usr/local/lib/libjemalloc.so"
+    BUNDLE_WITHOUT="development"
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
@@ -38,8 +37,8 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# Precompiling assets for production without requiring secret RAILS_MASTER_KEY (com --trace para detalhar erros se houver)
+RUN SECRET_KEY_BASE_DUMMY=1 RUBY_GC_HEAP_GROWTH_FACTOR=1.1 ./bin/rails assets:precompile --trace
 
 # Final stage for app image
 FROM base
