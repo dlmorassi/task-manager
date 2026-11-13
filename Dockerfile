@@ -31,7 +31,7 @@ RUN apt-get update -qq && \
 COPY vendor/* ./vendor/
 COPY Gemfile Gemfile.lock ./
 
-# Força o Bundler a aceitar a plataforma Linux e ignorar restrições
+# Força o Bundler a aceitar a plataforma Linux e ignorar lockfiles restritos
 RUN bundle config set --local force_ruby_platform true && \
     bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
@@ -57,5 +57,5 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Inicia o servidor chamando o Ruby diretamente para ignorar a validação estrita do bundle exec
-CMD ["./bin/thrust", "./bin/rails", "server"]
+# Inicia o servidor diretamente pelo rails server para ignorar travas de plataforma do bundler
+CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "80"]
