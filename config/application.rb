@@ -6,6 +6,11 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+if Rails.env.production? && ENV["SECRET_KEY_BASE"].blank?
+  secret_file = File.expand_path("../storage/secret_key_base", __dir__)
+  ENV["SECRET_KEY_BASE"] = File.read(secret_file).strip if File.file?(secret_file)
+end
+
 module TaskManager
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
